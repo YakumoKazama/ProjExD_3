@@ -104,7 +104,6 @@ class Beam:
 
         self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"), self.angle, 1)
         self.rct = self.img.get_rect()
-        # self.rct.left = bird.rct.right
         self.rct.centerx = bird.rct.centerx + bird.rct.width * self.vx // 5
         self.rct.centery = bird.rct.centery + bird.rct.height * self.vy // 5
     
@@ -217,8 +216,6 @@ def main():
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # スペースキー押下でBeamクラスのインスタンス生成
                 beams.append(Beam(bird))
-                for expl in explosions:
-                    print(expl.life, end=", ")
         screen.blit(bg_img, [0, 0])
         
         for i, bomb in enumerate(bombs):
@@ -245,8 +242,7 @@ def main():
                     pg.display.update()
             
              #ビーム配列を更新. 画面外のビームも除外する.
-            beams = [beam for beam in beams if beam is not None]
-            beams = [beam for beam in beams if check_bound(beam.rct) == (True, True)]
+            beams = [beam for beam in beams if beam is not None and check_bound(beam.rct) == (True, True)]
         
         bombs = [bomb for bomb in bombs if bomb is not None] #爆弾配列を更新
         explosions = [expl for expl in explosions if expl.life > 0]
