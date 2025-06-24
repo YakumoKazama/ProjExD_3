@@ -166,6 +166,30 @@ class Score:
         screen.blit(self.img, self.rct)
         
 
+class Explosion:
+    """
+    爆発エフェクトのクラス
+    """
+    def __init__(self, bomb: Bomb):
+        """
+        爆発エフェクトSurfaceを生成
+        """
+        self.life = 50
+        #Surface生成
+        self.img = pg.image.load("fig/explosion.gif")
+        self.rct = self.img.get_rect()
+        self.rct.center = bomb.rct.center
+        self.imgs = [self.img, pg.transform.flip(self.img, True, True)]
+    
+    def update(self, screen: pg.Surface):
+        """
+        画面に出力(blit)する
+        """
+        if self.life > 0:
+            self.life -= 1
+            screen.blit(self.imgs[0], self.rct)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -173,16 +197,20 @@ def main():
     bird = Bird((300, 200))
     bombs = [Bomb((255, 0, 0), 10) for i in range(NUM_OF_BOMBS)] #爆弾インスタンスの配列
     beams = []
+    explosions = []
     score = Score()
     clock = pg.time.Clock()
     tmr = 0
+    expl_cnt = 0
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # スペースキー押下でBeamクラスのインスタンス生成
-                beams.append(Beam(bird))        
+                beams.append(Beam(bird))
+                for expl in explosions:
+                    print(expl.life, end=", ")
         screen.blit(bg_img, [0, 0])
         
         for i, bomb in enumerate(bombs):
@@ -202,6 +230,10 @@ def main():
                     bombs[i], beams[j] = None, None
                     score.score += 1 #得点を足す
                     bird.change_img(6, screen)
+
+                    #Explosion
+                    explosions.append(Explosion(bomb))
+
                     pg.display.update()
             
              #ビーム配列を更新. 画面外のビームも除外する.
@@ -209,6 +241,16 @@ def main():
             beams = [beam for beam in beams if check_bound(beam.rct) == (True, True)]
         
         bombs = [bomb for bomb in bombs if bomb is not None] #爆弾配列を更新
+        explosions = [expl for expl in explosions if expl.life > 0]
+
+        for expl in explosions:
+            expl_cnt += 1
+            if expl_cnt < 10:
+                expl.update(screen)
+            else:
+                #画像の切り替え
+                expl.imgs[0], expl.imgs[1] = expl.imgs[1], expl.imgs[0]
+                expl_cnt = 0
 
         #インスタンス更新
         key_lst = pg.key.get_pressed()
